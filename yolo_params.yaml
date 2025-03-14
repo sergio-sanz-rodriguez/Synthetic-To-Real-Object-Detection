@@ -1,0 +1,8 @@
+# Dataset paths
+train: Synthetic_to_Real_Object_Detection_Full/data/train/images  # Path to training images
+val: Synthetic_to_Real_Object_Detection_Full/data/val/images      # Path to validation images
+test: Synthetic_to_Real_Object_Detection_Full/data/test/images    # Path to test images
+
+# Class information
+nc: 1                     # Number of classes
+names: ['cheerios']       # Class names
