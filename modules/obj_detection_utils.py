@@ -44,8 +44,8 @@ def set_seeds(seed: int=42):
 def prune_predictions(
     pred,
     score_threshold=0.66,
-    mask_threshold=0.5,
     iou_threshold=0.5,
+    best_candidate=None
     ):
 
     """
@@ -60,10 +60,13 @@ def prune_predictions(
         The raw predictions containing "boxes", "scores", "labels", and "masks".
     score_threshold : float, optional
         The minimum confidence score required to keep a prediction (default: 0.66).
-    mask_threshold : float, optional
-        The threshold for binarizing the segmentation masks (default: 0.5).
     iou_threshold : float, optional
         The Intersection over Union (IoU) threshold for NMS (default: 0.5).
+    best_candidate: string, optional
+        Returns the best bounding box based on a criterion:
+        - "score": bounding box with the highest score
+        - "area": bounding box with the highest area
+        - None: returns the set of best bounding boxes
 
     Returns:
     dict
@@ -71,12 +74,13 @@ def prune_predictions(
         - "boxes": Tensor of kept bounding boxes.
         - "scores": Tensor of kept scores.
         - "labels": Tensor of kept labels.
-        - "masks": Tensor of kept segmentation masks (if present).
     """
     
+    if not (isinstance(best_candidate, str) or best_candidate is None):
+        raise ValueError("best_candidate must be either None, 'score', or 'area'")
+
     # Filter predictions based on confidence score threshold
     scores = pred["scores"]
-
     best_idx = scores.argmax()
     high_conf_idx = scores > score_threshold
 
@@ -92,10 +96,6 @@ def prune_predictions(
         "scores": pred["scores"][high_conf_idx],
         "labels": pred["labels"][high_conf_idx], #[f"roi: {s:.3f}" for s in scores[high_conf_idx]]
     }
-
-    # Only add "masks" if present in prediction output
-    if "masks" in pred:
-        filtered_pred["masks"] = (pred["masks"] > mask_threshold).squeeze(1)[high_conf_idx]
 
     # Apply Non-Maximum Suppression (NMS) to remove overlapping predictions
     if len(filtered_pred["boxes"]) == 0:
@@ -119,8 +119,34 @@ def prune_predictions(
         keep_preds["boxes"] = torch.cat([keep_preds["boxes"], best_pred["boxes"]])
         keep_preds["scores"] = torch.cat([keep_preds["scores"], best_pred["scores"]])
         keep_preds["labels"] = torch.cat([keep_preds["labels"], best_pred["labels"]])
+    
+    # Now we have a set of good candidates. Let's take the best one based on a criterion
+    if keep_preds["boxes"].shape[0] > 1:
 
-    return keep_preds           
+        # Return only the one with the highest score
+        if best_candidate == "score":            
+            idx = keep_preds['scores'].argmax().item()
+            final_pred = {
+                "boxes": keep_preds["boxes"][idx].unsqueeze(0),
+                "scores": keep_preds["scores"][idx].unsqueeze(0),
+                "labels": keep_preds["labels"][idx].unsqueeze(0),
+            }
+            return final_pred
+
+        # Compute area of each box and return the one with the largest area
+        elif best_candidate == "area":
+            areas = (keep_preds["boxes"][:, 2] - keep_preds["boxes"][:, 0]) * (keep_preds["boxes"][:, 3] - keep_preds["boxes"][:, 1])
+            idx = areas.argmax().item()            
+            final_pred = {
+                "boxes": keep_preds["boxes"][idx].unsqueeze(0),
+                "scores": keep_preds["scores"][idx].unsqueeze(0),
+                "labels": keep_preds["labels"][idx].unsqueeze(0),
+            }
+            return final_pred
+
+        
+    return keep_preds
+       
 
 
 # Function to display images with masks and boxes on the ROIs
@@ -263,7 +289,7 @@ def visualize_transformed_data(img, target, transformed_img, transformed_target)
 
 class RandomCircleOcclusion(T.RandomErasing):
 
-    def __init__(self, p=0.5, scale=(0.02, 0.2), ratio=(0.3, 3.3)):
+    def __init__(self, p=0.5, scale=(0.02, 0.2), ratio=(0.3, 3.3), num_elems=6):
 
         """
         Initializes the RandomCircleOcclusion class.
@@ -287,6 +313,7 @@ class RandomCircleOcclusion(T.RandomErasing):
         ]
         
         super().__init__(p=p, scale=scale, ratio=ratio, value=forest_green)
+        self.num_elems = num_elems
 
     def forward(self, img, target=None):
         if torch.rand(1).item() > self.p:
@@ -296,7 +323,7 @@ class RandomCircleOcclusion(T.RandomErasing):
         h, w, _ = img_np.shape
 
         # Generate a random occlusion mask
-        num_blobs = np.random.randint(2, 6)
+        num_blobs = np.random.randint(2, self.num_elems)
         for _ in range(num_blobs):
             x, y = np.random.randint(0, w), np.random.randint(0, h)
             size = np.random.randint(h // 20, h // 5)
@@ -309,7 +336,7 @@ class RandomCircleOcclusion(T.RandomErasing):
 
         img_tensor = torch.from_numpy(img_np).float().div(255).permute(2, 0, 1)  # Convert back to tensor
         return img_tensor, target
-    
+
 
 class RandomTextureOcclusion:
     def __init__(self, plant_path, transparency=0.5, p=0.5):
