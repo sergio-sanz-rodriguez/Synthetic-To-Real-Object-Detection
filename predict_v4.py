@@ -51,20 +51,13 @@ def get_transform():
     return T.Compose(transforms)
 
 # Function to remove redundant boxes and masks
-def prune_predictions(
-    pred,
-    score_threshold=0.8,
-    iou_threshold=0.01,
-    best_candidate="area"
-    ):
+def prune_predictions(pred):
 
     """
     Filters out redundant predictions.
 
     Args:
-        pred: The raw predictions containing "boxes", "scores", "labels", and "masks".
-        score_threshold: The minimum confidence score required to keep a prediction (default: 0.66).
-        iou_threshold: The Intersection over Union (IoU) threshold for NMS (default: 0.5).
+        pred: The raw predictions containing "boxes", "scores", "labels", and "masks".        
 
     Returns:
         A dictionary with filtered and refined predictions:
@@ -76,8 +69,15 @@ def prune_predictions(
     # Filter predictions based on confidence score threshold
     scores = pred["scores"]
 
+    if len(scores) == 0:
+        return {
+            "boxes": [],
+            "scores": [],
+            "labels": []
+            }
+
     best_idx = scores.argmax()
-    high_conf_idx = scores > score_threshold
+    high_conf_idx = scores > 0.8
 
     # Extract the best bounding box, score, and label
     best_pred = {
@@ -99,7 +99,7 @@ def prune_predictions(
         else:
             return filtered_pred 
     
-    keep_idx = ops.nms(filtered_pred["boxes"].float(), filtered_pred["scores"], iou_threshold)
+    keep_idx = ops.nms(filtered_pred["boxes"].float(), filtered_pred["scores"], 0.01)
 
     # Return filtered predictions
     keep_preds = {
@@ -115,37 +115,19 @@ def prune_predictions(
         keep_preds["scores"] = torch.cat([keep_preds["scores"], best_pred["scores"]])
         keep_preds["labels"] = torch.cat([keep_preds["labels"], best_pred["labels"]])
 
-    # Now we have a set of good candidates. Let's take the best one based on a criterion
-    if best_candidate == "score":
-        scores = keep_preds['scores']
-        idx = scores.argmax()
+    # Compute the area of each box and select the one with the largest area to help eliminate spurious boxes.    
+    boxes = keep_preds["boxes"]
+    areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
+    idx = areas.argmax()
 
-        # Return only the one with the highest score
-        final_pred = {
-            "boxes": keep_preds["boxes"][idx].unsqueeze(0),
-            "scores": keep_preds["scores"][idx].unsqueeze(0),
-            "labels": keep_preds["labels"][idx].unsqueeze(0),
-        }
-        return final_pred
-
-    # Compute area of each box and get the one with the highest area
-    elif best_candidate == "area":
-        
-        boxes = keep_preds["boxes"]
-        areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
-        idx = areas.argmax()
-
-        # Return only the largest bounding box
-        final_pred = {
-            "boxes": keep_preds["boxes"][idx].unsqueeze(0),
-            "scores": keep_preds["scores"][idx].unsqueeze(0),
-            "labels": keep_preds["labels"][idx].unsqueeze(0),
-        }
-        return final_pred
-
-    # Return the set
-    else:
-        return keep_preds 
+    # Return only the largest bounding box
+    final_pred = {
+        "boxes": keep_preds["boxes"][idx].unsqueeze(0),
+        "scores": keep_preds["scores"][idx].unsqueeze(0),
+        "labels": keep_preds["labels"][idx].unsqueeze(0),
+    }
+    
+    return final_pred
     
 # Function to predict and save images
 def predict_and_save(model, image_path, output_path_txt, device):
@@ -172,16 +154,23 @@ def predict_and_save(model, image_path, output_path_txt, device):
     # Make prediction
     model.eval().to(device)
     with torch.no_grad():
-        x = transform(image)  # Apply transformations
-        x = x[:3, ...].to(device)  # Ensure it's RGB (3 channels)
+
+        # Apply transformations
+        x = transform(image)  
+
+        # Ensure it's RGB
+        x = x[:3, ...].to(device)  
+
+        # Predict
         pred = model([x])[0]
 
-        # Take the best ones
+        # Take the best bounding box
         if pred["boxes"].nelement() > 0:
             pred = prune_predictions(pred)
 
-    # Save bounding boxes in YOLO format
+    # Save bounding box in YOLO format
     with open(output_path_txt, 'w') as f:
+
         # Unpack values from pred
         boxes = pred["boxes"]
         scores = pred["scores"]

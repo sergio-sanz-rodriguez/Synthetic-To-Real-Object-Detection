@@ -45,7 +45,7 @@ def prune_predictions(
     pred,
     score_threshold=0.66,
     iou_threshold=0.5,
-    best_candidate=None
+    best_candidate="area"
     ):
 
     """
@@ -54,26 +54,22 @@ def prune_predictions(
     2. Applying a binary mask threshold to filter out weak segmentation masks.
     3. Using Non-Maximum Suppression (NMS) to eliminate overlapping predictions.
     4. Ensuring the highest-scoring prediction is always included.
+    5. Selecting the best-confident bounding box based on a criterion: largest area or highest score.
 
-    Parameters:
-    pred : dict
-        The raw predictions containing "boxes", "scores", "labels", and "masks".
-    score_threshold : float, optional
-        The minimum confidence score required to keep a prediction (default: 0.66).
-    iou_threshold : float, optional
-        The Intersection over Union (IoU) threshold for NMS (default: 0.5).
-    best_candidate: string, optional
-        Returns the best bounding box based on a criterion:
-        - "score": bounding box with the highest score
-        - "area": bounding box with the highest area
-        - None: returns the set of best bounding boxes
+    Args:
+        pred: The raw predictions containing "boxes", "scores", "labels", and "masks".
+        score_threshold: The minimum confidence score required to keep a prediction (default: 0.66).
+        iou_threshold: The Intersection over Union (IoU) threshold for NMS (default: 0.5).
+        best_candidate: Selects, from the final set of bounding boxes, the best one based on a criterion:
+            -"area": the bounding box with the largest area is chosen
+            -"score": the bounding boxe with the highest score is chosen
+            -None: no criteion is used, maining the pruning method may contain one or more best bounding box candidates
 
     Returns:
-    dict
         A dictionary with filtered and refined predictions:
-        - "boxes": Tensor of kept bounding boxes.
-        - "scores": Tensor of kept scores.
-        - "labels": Tensor of kept labels.
+            "boxes": Tensor of kept bounding boxes.
+            "scores": Tensor of kept scores.
+            "labels": Tensor of kept labels.
     """
     
     if not (isinstance(best_candidate, str) or best_candidate is None):
@@ -81,6 +77,14 @@ def prune_predictions(
 
     # Filter predictions based on confidence score threshold
     scores = pred["scores"]
+
+    if len(scores) == 0:
+        return {
+            "boxes": [],
+            "scores": [],
+            "labels": []
+            }
+
     best_idx = scores.argmax()
     high_conf_idx = scores > score_threshold
 
@@ -216,14 +220,17 @@ def display_and_save_predictions(
         ]
 
         # Draw bounding boxes
-        output_image = draw_bounding_boxes(
-            image=image,
-            boxes=filtered_pred["boxes"],
-            labels=labels if print_classes or print_scores else None,
-            colors=box_color,
-            width=width,
-            font=font_type,
-            font_size=font_size)
+        if len(filtered_pred["boxes"]) > 0:
+            output_image = draw_bounding_boxes(
+                image=image,
+                boxes=filtered_pred["boxes"],
+                labels=labels if print_classes or print_scores else None,
+                colors=box_color,
+                width=width,
+                font=font_type,
+                font_size=font_size)
+        else:
+            output_image = image
 
         # Save Image (if save_dir is provided)
         if save_dir:
