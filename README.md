@@ -36,7 +36,7 @@ A data augmentation pipeline is employed in this project to improve model genera
 Occlusions are implemented by randomly adding colored circles and rectangles to the images. Additionally, a synthetic bush texture, sourced from the Falcon editor’s texture dataset, is overlaid using class-specific masks to further simulate complex, real-world scenarios.
 
 <div align="center">
-  <img src="images/augmentation.png" alt="Augmentation" width="650"/>
+  <img src="images/augmentation.png" alt="Augmentation" width="850"/>
 </div>
 <div align="center">
   <figcaption>Figure 1: An example of original synthetic image  before (left) and after augmentation transformations.</figcaption>
