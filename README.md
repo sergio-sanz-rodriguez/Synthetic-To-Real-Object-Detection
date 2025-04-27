@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="images/IMG_6801.PNG" alt="Into Picture" width="1000"/>
+</div>
+
 # Leveraging Synthetic Data for Real-World Object Detection
 
 By Sergio Sanz, PhD
@@ -55,7 +59,7 @@ Feature extraction for this stage is performed using the [ResNet50_FPN_v2](https
 Once the Regions of Interest (RoI) are proposed by the RPN, the second stage classifies the content of each region (e.g., pedestrian, dog, table, book, Cheerios box) and refines the coordinates of the bounding boxes. The figure below shows a block diagram of the Faster R-CNN architecture.
 
 <div align="center">
-  <img src="images/new_splash-method_NaA95zW.jpg" alt="Fast R-CNN" width="650"/>
+  <img src="images/fast_rcnn.jpg" alt="Fast R-CNN" width="650"/>
 </div>
 <div align="center">
   <figcaption>Figure 2: Block diagram of the Faster R-CNN architecture. Source: R. Girshick, et al. "Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation," 2014 IEEE Conference on Computer Vision and Pattern Recognition, June 2014.</figcaption>
@@ -97,7 +101,7 @@ The Faster R-CNN model was evaluated on the test dataset provided by Duality AI 
 Figure 3 presents two representative examples demonstrating the performance of the proposed model, which achieved perfect object detection. The model achieved the maximum score of 1.0 on the leaderboard.
 
 <div align="center">
-  <img src="images/new_splash-method_NaA95zW.jpg" alt="Fast R-CNN" width="650"/>
+  <img src="images/results.png" alt="Fast R-CNN" width="450"/>
 </div>
 <div align="center">
   <figcaption>Figure 3: Object detection results on unseen real-world test images.</figcaption>
