@@ -101,7 +101,7 @@ The Faster R-CNN model was evaluated on the test dataset provided by Duality AI 
 Figure 3 presents two representative examples demonstrating the performance of the proposed model, which achieved perfect object detection. The model achieved the maximum score of 1.0 on the leaderboard.
 
 <div align="center">
-  <img src="images/results.png" alt="Fast R-CNN" width="450"/>
+  <img src="images/results.png" alt="Fast R-CNN" width="650"/>
 </div>
 <div align="center">
   <figcaption>Figure 3: Object detection results on unseen real-world test images.</figcaption>
