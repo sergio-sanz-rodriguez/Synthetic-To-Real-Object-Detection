@@ -33,8 +33,11 @@ Occlusions are implemented by randomly adding colored circles and rectangles to 
 
 <div align="center">
   <img src="images/augmentation.png" alt="Augmentation" width="650"/>
+</div>
+<div align="center">
   <figcaption>Figure 1: An example of original synthetic image  before (left) and after augmentation transformations.</figcaption>
 </div>
+
 
 ## The Object Detection Model: Faster R-CNN
 ``Faster R-CNN`` was selected as the object detection architecture due to its strong balance between accuracy and efficiency. It is widely recognized for delivering state-of-the-art performance across various object detection tasks, leveraging a two-stage detection pipeline. This model contains 43.2 million parameters and has a size of 173.4 MB.
@@ -53,6 +56,8 @@ Once the Regions of Interest (RoI) are proposed by the RPN, the second stage cla
 
 <div align="center">
   <img src="images/new_splash-method_NaA95zW.jpg" alt="Fast R-CNN" width="650"/>
+</div>
+<div align="center">
   <figcaption>Figure 2: Block diagram of the Faster R-CNN architecture. Source: R. Girshick, et al. "Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation," 2014 IEEE Conference on Computer Vision and Pattern Recognition, June 2014.</figcaption>
 </div>
 
@@ -93,6 +98,8 @@ Figure 3 presents two representative examples demonstrating the performance of t
 
 <div align="center">
   <img src="images/new_splash-method_NaA95zW.jpg" alt="Fast R-CNN" width="650"/>
+</div>
+<div align="center">
   <figcaption>Figure 3: Object detection results on unseen real-world test images.</figcaption>
 </div>
 
