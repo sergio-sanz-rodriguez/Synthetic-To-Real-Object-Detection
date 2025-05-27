@@ -4,7 +4,7 @@
 
 # Leveraging Synthetic Data for Real-World Object Detection
 
-By Sergio Sanz, PhD.
+By [Sergio Sanz, PhD](https://www.linkedin.com/in/sergio-sanz-rodriguez/).
 
 To download the article, click [here](https://github.com/sergio-sanz-rodriguez/Synthetic-To-Real-Object-Detection/raw/main/2025-04-17_Leveraging_Synthetic_Data_for_Real-World_Object%20Detection.pdf).
 
