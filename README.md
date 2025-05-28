@@ -8,6 +8,8 @@ By [Sergio Sanz, PhD](https://www.linkedin.com/in/sergio-sanz-rodriguez/).
 
 To download the article, click [here](https://github.com/sergio-sanz-rodriguez/Synthetic-To-Real-Object-Detection/raw/main/2025-04-17_Leveraging_Synthetic_Data_for_Real-World_Object%20Detection.pdf).
 
+## 1. Introduction
+
 This article outlines the algorithmic solution developed for the [Synthetic to Real Object Detection Challenge](https://www.kaggle.com/competitions/synthetic-2-real-object-detection-challenge) on Kaggle, organized by [Duality AI](https://www.linkedin.com/company/dualityai/posts/?feedView=all). This work has been 🏆 **awarded among the top solutions**🏆  in this kaggle competition, having achieved the highest score.
 
 <div align="center">
@@ -30,7 +32,7 @@ Additional highlights of this approach include:
   <img src="images/duality_ai_logo_crop.png" alt="DualityAI Logo" width="350"/>
 </div>
 
-## Data Preprocessing: Augmentation
+## 2. Data Preprocessing: Augmentation
 Object detection performance can be enhanced by generating additional synthetic Cheerio box scenes using the Falcon editing software, alongside the original dataset. These new scenes can introduce variations such as occlusions and changes in pixel brightness and color. Alternatively, applying transformations to the original dataset offers a simple yet effective way to diversify the training data.
 
 A data augmentation pipeline is employed in this project to improve model generalization. It includes various transformations such as resolution scaling, color jittering, horizontal and vertical flipping, zooming out, and most notably occlusions. Plenty of occlusions are introduced to simulate edge cases (see Figure 1).
@@ -45,18 +47,18 @@ Occlusions are implemented by randomly adding colored circles and rectangles to 
 </div>
 
 
-## The Object Detection Model: Faster R-CNN
+## 3. The Object Detection Model: Faster R-CNN
 ``Faster R-CNN`` was selected as the object detection architecture due to its strong balance between accuracy and efficiency. It is widely recognized for delivering state-of-the-art performance across various object detection tasks, leveraging a two-stage detection pipeline. This model contains 43.2 million parameters and has a size of 173.4 MB.
 
 The model consists of three main stages, described below:
 
-### Region Proposal Network (RPN)
+### 3.1. Region Proposal Network (RPN)
 
 The first stage involves scanning the image to identify regions (i.e., bounding boxes) that are likely to contain objects. This step estimates ``objectness``, which is the probability that a given region contains an object rather than background.
 
 Feature extraction for this stage is performed using the [ResNet50_FPN_v2](https://pytorch.org/vision/main/models/faster_rcnn.html) backbone.
 
-### Classification and Bounding Box Regression
+### 3.2. Classification and Bounding Box Regression
 
 Once the Regions of Interest (RoI) are proposed by the RPN, the second stage classifies the content of each region (e.g., pedestrian, dog, table, book, Cheerios box) and refines the coordinates of the bounding boxes. The figure below shows a block diagram of the Faster R-CNN architecture.
 
@@ -67,7 +69,7 @@ Once the Regions of Interest (RoI) are proposed by the RPN, the second stage cla
   <figcaption>Figure 2: Block diagram of the Faster R-CNN architecture. Source: R. Girshick, et al. "Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation," 2014 IEEE Conference on Computer Vision and Pattern Recognition, June 2014.</figcaption>
 </div>
 
-### Bounding Box Pruning
+### 3.3. Bounding Box Pruning
 
 The R-CNN model may generate multiple bounding box candidates, some of which correspond to the same object or parts of it. To produce cleaner outputs, bounding boxes with the lowest confidence scores are removed during this stage, helping to eliminate redundant detections.
 
@@ -77,7 +79,7 @@ This algorithm has been implemented from scratch and relies on three filtering s
 * **IoU threshold:** The Non-Maximum Suppression (NMS) algorithm, available in PyTorch, is applied to iteratively remove lower-scoring boxes that have an Intersection over Union (IoU) greater than the defined threshold with a higher-scoring box. In simpler words, a lower IoU threshold results in more aggressive removal of overlapping predictions.
 * **Area-based best candidate selection (optional):** If two or more boxes still remain after the previous steps, the one with the largest area is selected. This heuristic assumes that smaller boxes are more likely to be spurious. Alternatively, a different selection criterion, such as choosing the box with the highest confidence score, can be applied. This stage is useful when it is known in advance that at most one object of a given class is present in the image.
 
-## Training and Cross-Validation
+## 4. Training and Cross-Validation
 The model was trained using the PyTorch framework with the following configuration:
 
 * Learning rate: 1e-5
@@ -86,7 +88,7 @@ The model was trained using the PyTorch framework with the following configurati
 * Scheduler: CosineAnnealingLR
 * Number of epochs: 30
 
-### Loss Function
+### 4.1. Loss Function
 
 The Faster R-CNN model returns a dictionary containing the following loss components:
 
@@ -97,7 +99,7 @@ The Faster R-CNN model returns a dictionary containing the following loss compon
 
 The overall loss used for training and cross-validation is the sum of these individual components.
 
-## Experimental Results
+## 5. Experimental Results
 The Faster R-CNN model was evaluated on the test dataset provided by Duality AI as part of this Kaggle competition. Model performance was measured using the Mean Average Precision at IoU threshold 0.50 (mAP@50).
 
 Figure 3 presents two representative examples demonstrating the performance of the proposed model, which achieved perfect object detection. The model achieved the maximum score of 1.0 on the leaderboard.
@@ -109,7 +111,7 @@ Figure 3 presents two representative examples demonstrating the performance of t
   <figcaption>Figure 3: Object detection results on unseen real-world test images.</figcaption>
 </div>
 
-## Conclusion
+## 6. Conclusion
 
 The proposed approach demonstrates the effectiveness of using synthetic data alongside a robust object detection architecture and strong data augmentation techniques to address real-world object detection tasks.
 
