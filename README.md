@@ -69,7 +69,7 @@ Once the Regions of Interest (RoI) are proposed by the RPN, the second stage cla
   <figcaption>Figure 2: Block diagram of the Faster R-CNN architecture. Source: R. Girshick, et al. "Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation," 2014 IEEE Conference on Computer Vision and Pattern Recognition, June 2014.</figcaption>
 </div>
 
-### 3.3. Bounding Box Pruning
+### 4. Bounding Box Pruning
 
 The R-CNN model may generate multiple bounding box candidates, some of which correspond to the same object or parts of it. To produce cleaner outputs, bounding boxes with the lowest confidence scores are removed during this stage, helping to eliminate redundant detections.
 
@@ -79,7 +79,7 @@ This algorithm has been implemented from scratch and relies on three filtering s
 * **IoU threshold:** The Non-Maximum Suppression (NMS) algorithm, available in PyTorch, is applied to iteratively remove lower-scoring boxes that have an Intersection over Union (IoU) greater than the defined threshold with a higher-scoring box. In simpler words, a lower IoU threshold results in more aggressive removal of overlapping predictions.
 * **Area-based best candidate selection (optional):** If two or more boxes still remain after the previous steps, the one with the largest area is selected. This heuristic assumes that smaller boxes are more likely to be spurious. Alternatively, a different selection criterion, such as choosing the box with the highest confidence score, can be applied. This stage is useful when it is known in advance that at most one object of a given class is present in the image.
 
-## 4. Training and Cross-Validation
+## 5. Training and Cross-Validation
 The model was trained using the PyTorch framework with the following configuration:
 
 * Learning rate: 1e-5
@@ -88,7 +88,7 @@ The model was trained using the PyTorch framework with the following configurati
 * Scheduler: CosineAnnealingLR
 * Number of epochs: 30
 
-### 4.1. Loss Function
+### 5.1. Loss Function
 
 The Faster R-CNN model returns a dictionary containing the following loss components:
 
@@ -99,7 +99,7 @@ The Faster R-CNN model returns a dictionary containing the following loss compon
 
 The overall loss used for training and cross-validation is the sum of these individual components.
 
-## 5. Experimental Results
+## 6. Experimental Results
 The Faster R-CNN model was evaluated on the test dataset provided by Duality AI as part of this Kaggle competition. Model performance was measured using the Mean Average Precision at IoU threshold 0.50 (mAP@50).
 
 Figure 3 presents two representative examples demonstrating the performance of the proposed model, which achieved perfect object detection. The model achieved the maximum score of 1.0 on the leaderboard.
@@ -111,7 +111,7 @@ Figure 3 presents two representative examples demonstrating the performance of t
   <figcaption>Figure 3: Object detection results on unseen real-world test images.</figcaption>
 </div>
 
-## 6. Conclusion
+## 7. Conclusion
 
 The proposed approach demonstrates the effectiveness of using synthetic data alongside a robust object detection architecture and strong data augmentation techniques to address real-world object detection tasks.
 
